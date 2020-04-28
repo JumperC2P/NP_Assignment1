@@ -30,8 +30,7 @@ public class GameServer {
 		
 		ServerSocket server = null;
 
-        try
-        {
+        try {
             server = new ServerSocket(PORT);
             System.out.println("Game server is started.");
             
@@ -45,57 +44,65 @@ public class GameServer {
                 printWriter = new PrintWriter(connection.getOutputStream(),true);
                 connInput = new Scanner(connection.getInputStream());
                 
-                if (playerName == null) {
-                	setPlayerName();
-                }
-                
-                if (randomNumber == null) {
-                	setRandomNumber();
-                }
-                
-                printWriter.println("Let's start the game. Please guess a number between 0 and 12: ");
-                
-                String str = null;
-                Integer guessChance = 1;
-                while (true) {
-                	try {
-                		str = connInput.nextLine();  
-                        Integer guessingNumber = null;
-                        try {
-                        	guessingNumber = Integer.valueOf(str);
-                        }catch (NumberFormatException nfe) {
-                        	printWriter.println("The input you entered is not a \"NUMBER\". Please give us a number: ");
-                        	continue;
-                        }
-                        
-                        if (guessingNumber < 0 || guessingNumber > 12) {
-                        	printWriter.println("The number you entered is out of range. Please give us a number between 0 to 12: ");
-                        	continue;
-                        }
-                        
-                        if (guessingNumber == randomNumber) {
-                        	printWriter.println("Congratulations. You are right. The number is " + randomNumber + ".");
-                        	reset();
-                        	break;
-                        }
-                        
-                        if ((MAX_CHANCES-guessChance) == 0) {
-                        	printWriter.println("Sorry. The number you guess is " + guessingNumber + ", which is wrong. The target number is " + randomNumber + ". Thanks for joining the game.");
-                        	reset();
-                        	break;
-                        }
-                        
-                        if (guessingNumber < randomNumber)
-                        	printWriter.println("The number you guess is " + guessingNumber + ", which is smaller than the generated number. Please guess again (chances left: " + (MAX_CHANCES-guessChance) + "): ");
-                        else
-                        	printWriter.println("The number you guess is " + guessingNumber + ", which is bigger than the generated number. Please guess again (chances left: " + (MAX_CHANCES-guessChance) + "): ");
-                        guessChance ++;
-                	}catch (NoSuchElementException nsee) {
-                		reset();
-                		break;
-                	}
+                try {
+                	if (playerName == null) {
+                    	setPlayerName();
+                    }
                     
+                    if (randomNumber == null) {
+                    	setRandomNumber();
+                    }
+                    
+                    printWriter.println("Let's start the game. Please guess a number between 0 and 12: ");
+                    
+                    String str = null;
+                    Integer guessChance = 1;
+                    while (true) {
+                    	try {
+                    		str = connInput.nextLine();  
+                            Integer guessingNumber = null;
+                            try {
+                            	guessingNumber = Integer.valueOf(str);
+                            }catch (NumberFormatException nfe) {
+                            	printWriter.println("The input you entered is not a \"NUMBER\". Please give us a number: ");
+                            	continue;
+                            }
+                            
+                            if (guessingNumber < 0 || guessingNumber > 12) {
+                            	printWriter.println("The number you entered is out of range. Please give us a number between 0 to 12: ");
+                            	continue;
+                            }
+                            
+                            if (guessingNumber == randomNumber) {
+                            	printWriter.println("Congratulations. You are right. The number is " + randomNumber + ".");
+                            	reset();
+                            	break;
+                            }
+                            
+                            if ((MAX_CHANCES-guessChance) == 0) {
+                            	printWriter.println("Sorry. The number you guess is " + guessingNumber + ", which is wrong. The target number is " + randomNumber + ". Thanks for joining the game.");
+                            	reset();
+                            	break;
+                            }
+                            
+                            if (guessingNumber < randomNumber)
+                            	printWriter.println("The number you guess is " + guessingNumber + ", which is smaller than the generated number. Please guess again (chances left: " + (MAX_CHANCES-guessChance) + "): ");
+                            else
+                            	printWriter.println("The number you guess is " + guessingNumber + ", which is bigger than the generated number. Please guess again (chances left: " + (MAX_CHANCES-guessChance) + "): ");
+                            guessChance ++;
+                    	}catch (NoSuchElementException nsee) {
+                    		reset();
+                    		break;
+                    	}
+                        
+                    }
+                }catch (NoSuchElementException ne) {
+                	System.out.println("Client quits the game.");
+                	reset();
+                	continue;
                 }
+                
+                
             }
             
         } catch (IOException e) {
