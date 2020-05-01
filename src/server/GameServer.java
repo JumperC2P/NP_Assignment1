@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Timer;
 
 /**
  * @author Chih-Hsuan Lee <s3714761>
@@ -65,11 +66,18 @@ public class GameServer {
                     
                     String str = null;
 					Integer guessChance = 1;
+					Timer timer = new Timer("Sender");
 					// use while loop to communicate with client continuously.
                     while (true) {
                     	try {
+                    		ServerTimer sender = new ServerTimer(printWriter, "Please guess a number between 0 and 12: ");
+                    		timer = new Timer("Sender");
+                    		timer.scheduleAtFixedRate(sender, 1000*60*3, 1000*60*3);
+                    		
 							// get the message from client
-							str = connInput.nextLine();  
+							str = connInput.nextLine(); 
+							
+							timer.cancel();
 							
 							// check whether the input is a number or not.
                             Integer guessingNumber = null;
@@ -161,10 +169,13 @@ public class GameServer {
 	private void setPlayerName() {
 		
 		printWriter.println("Welcome to the guessing game. Please give us your name: ");
-		
+		Timer timer = new Timer("Sender");
 		while(true) {
-			
+			ServerTimer sender = new ServerTimer(printWriter, "Please give us your name: ");
+    		timer = new Timer("Sender");
+    		timer.scheduleAtFixedRate(sender, 1000*60*3, 1000*60*3);
 			String playerInput = connInput.nextLine();
+			timer.cancel();
 			if (playerInput == null || playerInput.trim().length() == 0) {
 				printWriter.println("The name you gave is unvalid. Please try again: ");
 			}else {
