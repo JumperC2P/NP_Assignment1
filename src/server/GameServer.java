@@ -1,11 +1,17 @@
 package server;
 
-import java.io.*;
+import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.NoSuchElementException;
+import java.net.SocketTimeoutException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
-import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
+
+import tools.CalculateResult;
 
 /**
  * @author Chih-Hsuan Lee <s3714761>
@@ -15,120 +21,76 @@ public class GameServer {
 	
 	// declare some default parameters
 	private final static int PORT = 61618;
-	
-	private final Integer MAX_CHANCES = 4;
-	
+	private static final Integer MAX_CHANCES = 4;
 	private Socket connection;
-
-	private Scanner connInput;
-    private PrintWriter printWriter;
+    private static Integer randomNumber = null;
+    private static Map<PlayerHandler, Integer> resultMap = new HashMap<>();
+    static List<PlayerHandler> waitingPlayers = new LinkedList<>();
+    static List<PlayerHandler> players = new LinkedList<>();
+    private int requeueTimes = 0;
     
-    private String playerName;
-    
-    private Integer randomNumber = null;
-
-	public GameServer() {
+    public GameServer() {
 		
 		ServerSocket server = null;
 
         try {
-			// start the server
-            server = new ServerSocket(PORT);
-            System.out.println("Game server is started.");
-			
-			// use while loop to wait for player joining.
-            while(true) {
-            	
-            	System.out.println("Waiting for new player...");
+        	server = new ServerSocket(PORT);
+        	server.setSoTimeout(1000*60);
+        	System.out.println("Game server is started.");
+			while (true) {
+				// start the server
+	            System.out.println("Waiting for players for 1 minutes...");
 				
-				// accept a connection from client
-                connection = server.accept();
-                System.out.println("A new player has joined the game.");
-				
-				// use the socket connection to get InputStream and OutputStream
-				// and convert to different object to operate them.
-                printWriter = new PrintWriter(connection.getOutputStream(),true);
-                connInput = new Scanner(connection.getInputStream());
-                
-                try {
-					// get player's name if it's a new player.
-                	if (playerName == null) {
-                    	setPlayerName();
-                    }
-					
-					// setup random number
-                    if (randomNumber == null) {
-                    	setRandomNumber();
-                    }
-                    
-                    printWriter.println("Let's start the game. Please guess a number between 0 and 12: ");
-                    
-                    String str = null;
-					Integer guessChance = 1;
-					// use while loop to communicate with client continuously.
-                    while (true) {
-                    	try {
-							// get the message from client
-							str = connInput.nextLine();  
-							
-							// check whether the input is a number or not.
-                            Integer guessingNumber = null;
-                            try {
-								guessingNumber = Integer.valueOf(str);
-								
-							// if it is not a number, return the message to client.
-                            }catch (NumberFormatException nfe) {
-                            	printWriter.println("The input you entered is not a \"NUMBER\". Please give us a number: ");
-                            	continue;
-                            }
-							
-							// check whether the input number is in the range.
-							// if not, return the message to client.
-                            if (guessingNumber < 0 || guessingNumber > 12) {
-                            	printWriter.println("The number you entered is out of range. Please give us a number between 0 to 12: ");
-                            	continue;
-                            }
-							
-							// check whether the client is correct.
-							// if yes, return the message and end the while loop.
-                            if (guessingNumber == randomNumber) {
-                            	printWriter.println("Congratulations. You are right. The number is " + randomNumber + ".");
-                            	reset();
-                            	break;
-                            }
-							
-							// check whether the client has other chances to guess.
-							// if not, return the message and end the while loop.
-                            if ((MAX_CHANCES-guessChance) == 0) {
-                            	printWriter.println("Sorry. The number you guess is " + guessingNumber + ", which is wrong. The target number is " + randomNumber + ". Thanks for joining the game.");
-                            	reset();
-                            	break;
-                            }
-							
-							// returning different messages depends on different situations.
-                            if (guessingNumber < randomNumber)
-                            	printWriter.println("The number you guess is " + guessingNumber + ", which is smaller than the generated number. Please guess again (chances left: " + (MAX_CHANCES-guessChance) + "): ");
-                            else
-                            	printWriter.println("The number you guess is " + guessingNumber + ", which is bigger than the generated number. Please guess again (chances left: " + (MAX_CHANCES-guessChance) + "): ");
-							
-							guessChance ++;
+				// use while loop to wait for player joining.
+	            while(true) {
+	            	try {
+	            		// accept a connection from client
+	            		connection = server.accept();
+	            		waitingPlayers.add(new PlayerHandler(connection, this, null));
+	            		System.out.println("A new player has joined the game.");
+	            	}catch (SocketTimeoutException ste) {
+	            		System.out.println("Time's out. Prepare to play.");
+	            		break;
+	            	}
+	            }
+	            
+	            // play the guessing game until no player in queue.
+	            while (true) {
+	            	
+	            	reset();
 
-						// if the client quits the game during game, reset all the parameters
-						// and wait for another player joining the game.
-                    	}catch (NoSuchElementException nsee) {
-                    		reset();
-                    		break;
-                    	}
-                        
-                    }
-                }catch (NoSuchElementException ne) {
-                	System.out.println("Client quits the game.");
-                	reset();
-                	continue;
-                }
-            }
-            
-        } catch (IOException e) {
+	                this.decidePlayers();
+	                
+	                // generate a random number to guess.
+	                this.setRandomNumber();
+	                
+	                System.out.println(players.size() + " players are ready to start.");
+	                players.forEach((player)-> {
+	                	try {
+	            			player.start();
+	                	}catch (IllegalThreadStateException e) {
+	                		System.out.println("Thread has already started.");
+	                	}
+	                });
+	                System.out.println(players.size() + " players start");
+
+	                // stop the while loop until all players finish their guessing.
+	                while(true) {
+	                	TimeUnit.SECONDS.sleep(2);
+	                	if (resultMap.size() == players.size())
+	                		break;
+	                }
+	                // send message to each players.
+	                sendResultToClient();
+	                
+//	                stopPlayersThread();
+	                
+	                if (waitingPlayers.size() == 0)
+	                	break;
+	                
+	            }
+			}
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         } finally {
             try{
@@ -137,15 +99,57 @@ public class GameServer {
         }
 		
 	}
-
-	/**
-	 * reset the parameters to default values.
-	 */
-	private void reset() {
-		
-		playerName = null;
-		randomNumber = null;
+    
+    private void reset() {
+    	players.removeAll(players);
+    	resultMap.clear();
+    	requeueTimes = 0;
 	}
+
+//    private void stopPlayersThread() {
+//    	players.forEach((p)->p.interrupt());
+//		
+//	}
+
+	private void decidePlayers() {
+    	
+    	if (waitingPlayers.size() > 3) {
+        	for (int i = 0; i < 3; i++) {
+        		players.add(waitingPlayers.get(0));
+        		waitingPlayers.remove(0);
+        	}
+        }else {
+        	players.addAll(waitingPlayers);
+        	waitingPlayers.removeAll(waitingPlayers);
+        }
+//    	players.forEach((p)->System.out.print(p.getPlayerName()+" "));
+	}
+
+	public synchronized void requeue(PlayerHandler player, Boolean isAgain) {
+		if (isAgain)
+			waitingPlayers.add(new PlayerHandler(player.getConnection(), this, player.getPlayerName()+"-again"));
+		
+//		waitingPlayers.forEach((p)->System.out.print(p.getPlayerName()+" "));
+		requeueTimes++;
+    }
+    
+    private void sendResultToClient() throws InterruptedException {
+		Map<PlayerHandler, String> messages = CalculateResult.calculation(resultMap, randomNumber);
+		messages.forEach((k, v)-> {
+			new PlayerResultHandler(k, this, v).start();
+		});
+		
+		while(true) {
+			TimeUnit.SECONDS.sleep(2);
+			if (requeueTimes == messages.size())
+				break;
+		}
+	}
+
+	public void setResultMap(PlayerHandler player, Integer remainingChance) {
+    	resultMap.put(player, remainingChance);
+//    	System.out.println("Result Map is added.");
+    }
 
 	/**
 	 * set random number to guess.
@@ -155,25 +159,14 @@ public class GameServer {
 		System.out.println("The random number is " + randomNumber + ".");
 	}
 
-	/**
-	 * get player name from client
-	 */
-	private void setPlayerName() {
-		
-		printWriter.println("Welcome to the guessing game. Please give us your name: ");
-		
-		while(true) {
-			
-			String playerInput = connInput.nextLine();
-			if (playerInput == null || playerInput.trim().length() == 0) {
-				printWriter.println("The name you gave is unvalid. Please try again: ");
-			}else {
-				playerName = playerInput;
-				break;
-			}
-		}
+	public int getRandomNumber() {
+		return randomNumber;
 	}
-
+	
+	public int getMaxChance() {
+		return MAX_CHANCES;
+	}
+	
 	/**
 	 * @param args
 	 */
