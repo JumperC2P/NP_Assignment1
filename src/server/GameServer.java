@@ -72,7 +72,7 @@ public class GameServer {
                     	try {
                     		ServerTimer sender = new ServerTimer(printWriter, "Please guess a number between 0 and 12: ");
                     		timer = new Timer("Sender");
-                    		timer.scheduleAtFixedRate(sender, 1000*60*3, 1000*60*3);
+                    		timer.scheduleAtFixedRate(sender, 1000*5, 1000*5);
                     		
 							// get the message from client
 							str = connInput.nextLine(); 

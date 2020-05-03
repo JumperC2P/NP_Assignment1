@@ -59,7 +59,7 @@ public class GamePlayer {
                 	
                 	receiver = new ClientTimer(new Scanner(connection.getInputStream()));
                 	timer = new Timer("Receiver");
-                	timer.scheduleAtFixedRate(receiver, 1000*60*3, 1000*60*3);
+                	timer.scheduleAtFixedRate(receiver, 1000*5, 1000*5);
                 	
 					// get input from console and use PrintWriter to send the input to server.
                 	input = new Scanner(System.in);
