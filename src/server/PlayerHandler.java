@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.Timer;
 
 /**
  * @author Chih-Hsuan Lee <s3714761>
@@ -18,6 +19,8 @@ public class PlayerHandler extends Thread {
 	private PrintWriter printWriter;
 	private GameServer server;
 	private Socket connection;
+	private long delay = 1000*30;
+	private long period = 1000*30;
 
 	public PlayerHandler(Socket connection, GameServer server, String playerName) {
 		
@@ -29,7 +32,7 @@ public class PlayerHandler extends Thread {
 			connInput = new Scanner(connection.getInputStream());
 			printWriter = new PrintWriter(connection.getOutputStream(), true);
 			if (playerName == null)
-				sendMessage("Please wait for other players. The Game will start in 3 minutes no matter how many players join in 3 minutes.");
+				sendMessage("Please wait for other players. The game will start in 3 minutes no matter how many players join in 3 minutes.");
 
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -57,8 +60,15 @@ public class PlayerHandler extends Thread {
 			// use while loop to communicate with client continuously.
             while (true) {
             	try {
+
+            		ServerTimerTask sender = new ServerTimerTask(printWriter, "Please guess a number between 0 and 12: ");
+            		Timer timer = new Timer("Sender");
+            		timer.scheduleAtFixedRate(sender, delay, period);
+            		
 					// get the message from client
 					str = connInput.nextLine();  
+					
+					timer.cancel();
 					
 					// check whether the input is a number or not.
                     Integer guessingNumber = null;

@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.Socket;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.Timer;
 
 /**
  * @author Chih-Hsuan Lee <s3714761>
@@ -19,6 +20,8 @@ public class GamePlayer {
 
     private Scanner scanner, input;
     private PrintWriter printWriter;
+    private long delay = 1000*5;
+	private long period = 1000*5;
     
     public GamePlayer() {
     	
@@ -66,11 +69,16 @@ public class GamePlayer {
     					else
     						continue;
                 	}
+                	
+                	ClientTimerTask receiver = new ClientTimerTask(new Scanner(connection.getInputStream()));
+                	Timer timer = new Timer("Receiver");
+                	timer.scheduleAtFixedRate(receiver, delay, period);
 					
 					// get input from console and use PrintWriter to send the input to server.
                 	input = new Scanner(System.in);
 					printWriter.println(input.nextLine()); 
 					
+					timer.cancel();
 					
 				// If the server is shut down, end the while loop.
             	}catch (NoSuchElementException nsee) {

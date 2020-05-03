@@ -28,6 +28,7 @@ public class GameServer {
     static List<PlayerHandler> waitingPlayers = new LinkedList<>();
     static List<PlayerHandler> players = new LinkedList<>();
     private int requeueTimes = 0;
+    private final int SERVER_WAITING_TIME = 1000*60*3;
     
     public GameServer() {
 		
@@ -35,11 +36,11 @@ public class GameServer {
 
         try {
         	server = new ServerSocket(PORT);
-        	server.setSoTimeout(1000*60);
+        	server.setSoTimeout(SERVER_WAITING_TIME);
         	System.out.println("Game server is started.");
 			while (true) {
 				// start the server
-	            System.out.println("Waiting for players for 1 minutes...");
+	            System.out.println("Waiting for players for 3 minutes...");
 				
 				// use while loop to wait for player joining.
 	            while(true) {
