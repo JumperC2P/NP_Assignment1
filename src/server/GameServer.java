@@ -31,7 +31,7 @@ public class GameServer {
     static List<PlayerHandler> waitingPlayers = new LinkedList<>();
     static List<PlayerHandler> players = new LinkedList<>();
     private int requeueTimes = 0;
-    private final int SERVER_WAITING_TIME = 1000*10;
+    private final int SERVER_WAITING_TIME = 1000*60*3;
     private final Logger LOGGER = GameLogger.getGameLogger();
 
     
@@ -40,13 +40,13 @@ public class GameServer {
 		ServerSocket server = null;
 
         try {
-        	server = new ServerSocket(PORT);
-        	server.setSoTimeout(SERVER_WAITING_TIME);
         	System.out.println("Game server is started.");
         	LOGGER.log(Level.INFO, "Game server is started.");
         	
 			while (true) {
 				// start the server
+				server = new ServerSocket(PORT);
+				server.setSoTimeout(SERVER_WAITING_TIME);
 	            System.out.println("Waiting for players for 3 minutes...");
 	            LOGGER.log(Level.INFO, "Waiting for players for 3 minutes...");
 				
