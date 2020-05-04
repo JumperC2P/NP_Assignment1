@@ -1,0 +1,54 @@
+May 04, 2020 6:38:21 PM server.GameServer <init>
+INFO: Game server is started.
+May 04, 2020 6:38:21 PM server.GameServer <init>
+INFO: Waiting for players for 3 minutes...
+May 04, 2020 6:38:23 PM server.GameServer <init>
+INFO: A player is joined the game from /127.0.0.1:56303.
+May 04, 2020 6:38:24 PM server.GameServer <init>
+INFO: A player is joined the game from /127.0.0.1:56304.
+May 04, 2020 6:38:34 PM server.GameServer <init>
+INFO: Time's out. Prepare to play.
+May 04, 2020 6:38:34 PM server.GameServer decidePlayers
+INFO: These players start the game: 
+May 04, 2020 6:38:34 PM server.GameServer decidePlayers
+INFO: Unknown Unknown 
+May 04, 2020 6:38:34 PM server.GameServer decidePlayers
+INFO: No player is the waiting line.
+May 04, 2020 6:38:34 PM server.GameServer <init>
+INFO: 2 players are ready to start.
+May 04, 2020 6:38:34 PM server.GameServer <init>
+INFO: 2 players have started
+May 04, 2020 6:38:36 PM server.PlayerHandler setPlayerName
+INFO: One of players is Hank
+May 04, 2020 6:38:38 PM server.PlayerHandler setPlayerName
+INFO: One of players is Will
+May 04, 2020 6:38:49 PM server.PlayerHandler run
+INFO: Will enters: 6
+May 04, 2020 6:38:50 PM server.PlayerHandler run
+INFO: Hank enters: 8
+May 04, 2020 6:38:52 PM server.PlayerHandler run
+INFO: Hank enters: 3
+May 04, 2020 6:38:54 PM server.PlayerHandler run
+INFO: Hank enters: 4
+May 04, 2020 6:38:56 PM server.PlayerHandler run
+INFO: Will enters: e
+May 04, 2020 6:38:56 PM server.PlayerHandler run
+INFO: Willquits during the game.
+May 04, 2020 6:38:56 PM server.PlayerHandler run
+INFO: Will end the game.
+May 04, 2020 6:38:59 PM server.PlayerHandler run
+INFO: Hank enters: 5
+May 04, 2020 6:38:59 PM server.PlayerHandler run
+INFO: Hank is out of chance and waiting for result.
+May 04, 2020 6:38:59 PM server.PlayerHandler run
+INFO: Hank end the game.
+May 04, 2020 6:39:00 PM server.GameServer <init>
+INFO: 2 players have finished their guessing.
+May 04, 2020 6:39:00 PM server.GameServer sendResultToClient
+INFO: Game Result: 
+May 04, 2020 6:39:00 PM server.GameServer lambda$1
+INFO: Hank: Sorry. You are out of chances. You lose the game. The number is 7.
+May 04, 2020 6:39:02 PM server.GameServer requeue
+INFO: Hank ends the game.
+May 04, 2020 6:39:02 PM server.GameServer <init>
+INFO: Waiting for players for 3 minutes...

@@ -20,8 +20,8 @@ public class GamePlayer {
 
     private Scanner scanner, input;
     private PrintWriter printWriter;
-    private long delay = 1000*5;
-	private long period = 1000*5;
+    private long delay = 1000*30;
+	private long period = 1000*30;
     
     public GamePlayer() {
     	
@@ -34,15 +34,10 @@ public class GamePlayer {
             printWriter = new PrintWriter(connection.getOutputStream(), true);
             scanner = new Scanner(connection.getInputStream());
             
+            printMessageFromServer();
+            
 			String serverMessage = null;
-			// print welcome message from server.
-			printMessageFromServer();
 			
-//			// give player name
-//			printMessageFromServer();
-//			input = new Scanner(System.in);
-//			printWriter.println(input.nextLine()); 
-//			
 //			// print waiting message from server.
 //			printMessageFromServer();
 			
@@ -68,9 +63,12 @@ public class GamePlayer {
     						break;
     					else
     						continue;
+                	} else if (serverMessage.startsWith("Thank you")) {
+                		printMessageFromServer();
+                		break;
                 	}
                 	
-                	ClientTimerTask receiver = new ClientTimerTask(new Scanner(connection.getInputStream()));
+                	ClientTimerTask receiver = new ClientTimerTask(connection);
                 	Timer timer = new Timer("Receiver");
                 	timer.scheduleAtFixedRate(receiver, delay, period);
 					
@@ -86,12 +84,9 @@ public class GamePlayer {
             		break;
             	}
             }
-            
-
         } catch (IOException e) {
             e.printStackTrace();
         }
-    	
     }
 
 	private String printMessageFromServer() {
@@ -107,9 +102,6 @@ public class GamePlayer {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		
 		new GamePlayer();
-
 	}
-
 }

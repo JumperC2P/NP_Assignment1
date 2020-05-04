@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
+import java.util.logging.Logger;
+
+import tools.GameLogger;
 
 public class PlayerResultHandler extends Thread {
 	
@@ -13,6 +16,7 @@ public class PlayerResultHandler extends Thread {
 	private Socket connection;
 	private PlayerHandler player;
 	private String resultMessage;
+	private final Logger LOGGER = GameLogger.getGameLogger();
 	
 	public PlayerResultHandler(PlayerHandler player, GameServer server, String resultMessage) {
 		this.player = player;
@@ -32,26 +36,32 @@ public class PlayerResultHandler extends Thread {
 	public void run() {
 		sendMessage(resultMessage);
 		sendMessage("Please choose to play again (p), or quit (q): ");
-		String str = null;
-		while (true) {
-			str = connInput.nextLine();  
-			if (str != null && str.trim().length() > 1) {
-				sendMessage("Please enter only \"p\" for playing again or \"q\" to quit");
-				continue;
+		
+		try {
+			String str = null;
+			while (true) {
+				str = connInput.nextLine();  
+				if (str != null && str.trim().length() > 1) {
+					sendMessage("Please enter only \"p\" for playing again or \"q\" to quit");
+					continue;
+				}
+				if ("q".equals(str)) {
+					sendMessage("Thank you for joining the game.");
+					server.requeue(player, false);
+					break;
+				}else if ("p".equals(str)) {
+					server.requeue(player, true);
+					sendMessage("Re-add you to the player lobby. Please wait.");
+					break;
+				}else {
+					sendMessage("Unaccepted input. Please enter only \"p\" for playing again or \"q\" to quit");
+					continue;
+				}
 			}
-			if ("q".equals(str)) {
-				sendMessage("Thank you for joining the game.");
-				server.requeue(player, false);
-				break;
-			}else if ("p".equals(str)) {
-				server.requeue(player, true);
-				sendMessage("Re-add you to the player lobby. Please wait.");
-				break;
-			}else {
-				sendMessage("Unaccepted input. Please enter only \"p\" for playing again or \"q\" to quit");
-				continue;
-			}
+		}catch (Exception e) {
 		}
+		
+		
 	}
 
 	public void sendMessage(String message) {
