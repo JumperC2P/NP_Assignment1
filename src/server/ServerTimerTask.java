@@ -33,7 +33,7 @@ public class ServerTimerTask extends TimerTask{
 			if (duration >= LIMIT_DURATION) {
 				printWriter.println("As you have not responsed for 5 minutes, the connection is closed.");
 				connection.close();
-			}else if (duration < LIMIT_DURATION && duration >= (LIMIT_DURATION-60)){
+			}else if (duration < LIMIT_DURATION && duration >= (LIMIT_DURATION-30)){
 				printWriter.println("The connection will be closed after " + (LIMIT_DURATION-duration) + " seconds.");
 			}else {
 				printWriter.println(message);

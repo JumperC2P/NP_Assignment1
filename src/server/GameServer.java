@@ -28,6 +28,7 @@ public class GameServer {
 	private Socket connection;
     private static Integer randomNumber = null;
     private static Map<PlayerHandler, Integer> resultMap = new HashMap<>();
+    static List<PlayerHandler> connectedPlayers = new LinkedList<>();
     static List<PlayerHandler> waitingPlayers = new LinkedList<>();
     static List<PlayerHandler> players = new LinkedList<>();
     private int requeueTimes = 0;
@@ -56,16 +57,28 @@ public class GameServer {
 	            		// accept a connection from client
 	            		connection = server.accept();
 
-	            		waitingPlayers.add(new PlayerHandler(connection, this, null));
-	            		String connectionAddress = connection.getRemoteSocketAddress().toString();
-	            		System.out.println("A player is joined the game from " + connectionAddress + ".");
-	            		LOGGER.log(Level.INFO, "A player is joined the game from " + connectionAddress + ".");
+	            		connectedPlayers.add(new PlayerHandler(connection, this, null));
+	            		connectedPlayers.get(connectedPlayers.size()-1).start();
+//	            		String connectionAddress = connection.getRemoteSocketAddress().toString();
+//	            		System.out.println("A player is joined the game from " + connectionAddress + ".");
+//	            		LOGGER.log(Level.INFO, "A player is joined the game from " + connectionAddress + ".");
 	            		
 	            	}catch (SocketTimeoutException ste) {
 	            		LOGGER.log(Level.INFO, "Time's out. Prepare to play.");
 	            		System.out.println("Time's out. Prepare to play.");
 	            		break;
 	            	}
+	            }
+	            
+	            for (PlayerHandler connectedPlayer : connectedPlayers) {
+	            	connectedPlayer.join();
+	            	System.out.println(connectedPlayer.getPlayerName() + " is joined the game from " + connectedPlayer.getConnection().getRemoteSocketAddress().toString() + ".");
+            		LOGGER.log(Level.INFO, connectedPlayer.getPlayerName() + " is joined the game from " + connectedPlayer.getConnection().getRemoteSocketAddress().toString() + ".");
+	            
+            		// add the player to waiting line
+            		PlayerHandler player = new PlayerHandler(connectedPlayer.getConnection(), this, connectedPlayer.getPlayerName());
+            		player.setToGameTime();
+            		waitingPlayers.add(player);
 	            }
 	            
 	            // play the guessing game until no player in queue.
@@ -113,6 +126,7 @@ public class GameServer {
 	                	break;
 	                
 	            }
+	            server.close();
 			}
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();

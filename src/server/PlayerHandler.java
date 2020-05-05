@@ -17,7 +17,7 @@ import tools.GameLogger;
  */
 public class PlayerHandler extends Thread {
 	
-
+	private Boolean isGame = false;
 	private String playerName;
 	private Integer MAX_CHANCES;
 	private Scanner connInput;
@@ -52,8 +52,24 @@ public class PlayerHandler extends Thread {
 		printWriter.println(message);
 	}
 	
+	public void setToGameTime() {
+		this.isGame = true;
+	}
+	
 	@Override
 	public void run() {
+		
+		if (isGame) {
+			playGame();
+		}else {
+			if (this.playerName == null) {
+				setPlayerName();
+				setToGameTime();
+			}
+		}
+	}
+
+	private void playGame() {
 		Timer timer = new Timer("Sender");
 		try {
 			
@@ -62,7 +78,7 @@ public class PlayerHandler extends Thread {
 			}
 			
 			Integer randomNumber = server.getRandomNumber();
-			sendMessage("Hi, "+ this.playerName+ ". Let's start the game. If you want to quit the game, enter \"e\". Now, please guess a number between 0 and 12 (chances left: " + (MAX_CHANCES) + "): " );
+			sendMessage("Let's start the game. If you want to quit the game, enter \"e\". Now, please guess a number between 0 and 12 (chances left: " + (MAX_CHANCES) + "): " );
 			
 			
             String str = null;
@@ -154,6 +170,7 @@ public class PlayerHandler extends Thread {
         	System.out.println((playerName==null?"Someone":playerName) + " quits the game.");
         }
 //		System.out.println("End the Thread.");
+		
 	}
 
 	/**
@@ -175,6 +192,7 @@ public class PlayerHandler extends Thread {
 				} else {
 					playerName = playerInput;
 					LOGGER.log(Level.INFO, "One of players is " + playerName);
+					sendMessage("Hi, "+ this.playerName+ ". Please wait until telling you to start the game.");
 					break;
 				}
 			}

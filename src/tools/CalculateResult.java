@@ -20,13 +20,11 @@ import server.PlayerHandler;
  */
 public class CalculateResult {
 	
-	private final Logger LOGGER = GameLogger.getGameLogger();
-	
 	public static Map<PlayerHandler, String> calculation(Map<PlayerHandler, Integer> resultMap, Integer targetNumber){
 
 		String winningMessage = "Congratulations. You are the winner. The number is " + targetNumber + ".";
 		String runnerupMessage = "Congratulations. You are right, but unfortunately, other people use less chances to guess the right number than you. The number is " + targetNumber + ". You are runner-up.";
-		String loserMessage = "Sorry. You are out of chances. You lose the game. The number is " + targetNumber + ".";
+		String loserMessage = "Sorry. You are the third place. The number is " + targetNumber + ".";
 		
 		Map<PlayerHandler, String> messageMap = new HashMap<PlayerHandler, String>();
 		resultMap = orderMapByValue(resultMap);

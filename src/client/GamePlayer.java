@@ -66,6 +66,8 @@ public class GamePlayer {
                 	} else if (serverMessage.startsWith("Thank you")) {
                 		printMessageFromServer();
                 		break;
+                	} else if (serverMessage.startsWith("Hi,")) {
+                		continue;
                 	}
                 	
                 	ClientTimerTask receiver = new ClientTimerTask(connection);
