@@ -172,8 +172,7 @@ public class GameServer {
     		String name = player.getPlayerName();
     		sb.append(name==null?"Unknown":name).append(" ");
     	}
-    	LOGGER.log(Level.INFO, "These players start the game: ");
-    	LOGGER.log(Level.INFO, sb.toString());
+    	LOGGER.log(Level.INFO, "These players start the game: " + sb.toString());
     	
     	if (waitingPlayers.size() != 0) {
     		StringBuffer sb1 = new StringBuffer();
@@ -181,8 +180,7 @@ public class GameServer {
     			String name = player.getPlayerName();
     			sb1.append(name==null?"Unknown":name).append(" ");
     		}
-    		LOGGER.log(Level.INFO, "These players wait for another game: ");
-    		LOGGER.log(Level.INFO, sb.toString());
+    		LOGGER.log(Level.INFO, "These players wait for another game: " + sb.toString());
     	}else {
     		LOGGER.log(Level.INFO, "No player is the waiting line.");
     	}
