@@ -59,9 +59,11 @@ public class GameServer {
 
 	            		connectedPlayers.add(new PlayerHandler(connection, this, null));
 	            		connectedPlayers.get(connectedPlayers.size()-1).start();
-//	            		String connectionAddress = connection.getRemoteSocketAddress().toString();
-//	            		System.out.println("A player is joined the game from " + connectionAddress + ".");
-//	            		LOGGER.log(Level.INFO, "A player is joined the game from " + connectionAddress + ".");
+	            		
+	            		if (connectedPlayers.size() >= 6) {
+	            			LOGGER.log(Level.INFO, "The lobby is full. Prepare to play.");
+		            		System.out.println("The lobby is full. Prepare to play.");
+	            		}
 	            		
 	            	}catch (SocketTimeoutException ste) {
 	            		LOGGER.log(Level.INFO, "Time's out. Prepare to play.");
