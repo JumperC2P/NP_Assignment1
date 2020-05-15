@@ -6,7 +6,7 @@
 ```bash
 javac -sourcepath . server/GameServer.java
 ```
-3. 2. execute the command line below to compile all the server-relate java files :
+3. execute the command line below to compile all the server-relate java files :
 ```bash
 javac -sourcepath . client/GamePlayer.java 
 ```
