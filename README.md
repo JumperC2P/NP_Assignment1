@@ -15,15 +15,16 @@ javac -sourcepath . client/GamePlayer.java
 ```bash
 java server.GameServer demo 
 ```
-> if you don't give the argument "demo", the server will start in production mode.
+> If you don't give the argument "demo", the server will start in production mode.
 
 ### Start Game Client
 ```bash
 java client.GamePlayer demo 
 ```
-> if you don't give the argument "demo", the client will start in production mode.
+> If you don't give the argument "demo", the client will start in production mode.
 
 ### East way to play:
-1. execute **compile.sh**
-2. execute **start_server.sh** to start a server (the server will start in production mode.)
-3. execute **start_client.sh** to start a client (the server will start in production mode.)
+1. execute **compile.sh** with the command `./compile.sh`
+2. execute **start_server.sh** to start a server with the command `./start_server.sh`(the server will start in production mode.)
+3. execute **start_client.sh** to start a client with the command `./start_client.sh`(the server will start in production mode.)
+> If these three files cannot be executed, please run the command first `chmod +x compile.sh start_server.sh start_client.sh`.
