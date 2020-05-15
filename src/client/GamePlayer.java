@@ -15,7 +15,7 @@ public class GamePlayer {
 	
 	// declare for the host information
 	private static Boolean demo = false;
-	private final static String ADDRESS = "localhost";
+	private final static String ADDRESS = "netprog1.csit.rmit.edu.au";
     private final static int PORT = 61618;
 
     private Socket connection;
