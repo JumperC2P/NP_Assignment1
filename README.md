@@ -25,5 +25,5 @@ java client.GamePlayer demo
 
 ### East way to play:
 1. execute **compile.sh**
-2. execute **server.sh** to start a server (the server will start in production mode.)
-3. execute **client.sh** to start a client (the server will start in production mode.)
+2. execute **start_server.sh** to start a server (the server will start in production mode.)
+3. execute **start_client.sh** to start a client (the server will start in production mode.)
