@@ -7,12 +7,14 @@ import java.util.Scanner;
 import java.util.Timer;
 
 /**
+ * GamePlayer is the main program for client.
  * @author Chih-Hsuan Lee <s3714761>
  *
  */
 public class GamePlayer {
 	
 	// declare for the host information
+	private static Boolean demo = false;
 	private final static String ADDRESS = "localhost";
     private final static int PORT = 61618;
 
@@ -20,10 +22,13 @@ public class GamePlayer {
 
     private Scanner scanner, input;
     private PrintWriter printWriter;
-    private long delay = 1000*30;
-	private long period = 1000*30;
+    private long delay = demo?1000*5:1000*30;
+	private long period = demo?1000*5:1000*30;
     
     public GamePlayer() {
+    	
+    	delay = demo?1000*5:1000*30;
+    	period = demo?1000*5:1000*30;
     	
     	try {
 			// generate a new socket object with the address and port.
@@ -38,14 +43,12 @@ public class GamePlayer {
             
 			String serverMessage = null;
 			
-//			// print waiting message from server.
-//			printMessageFromServer();
-			
 			// use while loop to listen feedbacks from server.
             while (true) {
             	
             	try {
             		
+            		// get the message from server and print it.
             		serverMessage = printMessageFromServer();
 					
 					// check whether the message matches the end condition or not.
@@ -53,25 +56,34 @@ public class GamePlayer {
                 		
                 		printMessageFromServer();
                 		printMessageFromServer();
+                		// create a timer and timertask to receive keep-alive message from server
+                    	ClientTimerTask receiver = new ClientTimerTask(connection);
+                    	Timer timer = new Timer("ClientTimer");
+                    	timer.scheduleAtFixedRate(receiver, delay, period);
                 		input = new Scanner(System.in);
                 		String option = input.nextLine();
     					printWriter.println(option); 
+    					timer.cancel();
     					
     					printMessageFromServer();
     					
-    					if ("q".equals(option))
+    					// if player enter a q, and the program, otherwise continue the while loop.
+    					if ("q".equals(option.toLowerCase()))
     						break;
     					else
     						continue;
+    				// if the message starts with "Thank you", it's time to end the program.
                 	} else if (serverMessage.startsWith("Thank you")) {
                 		printMessageFromServer();
                 		break;
+                	// if the message starts with "Hi,", it just a infromation, no need to enter anything at this time.
                 	} else if (serverMessage.startsWith("Hi,")) {
                 		continue;
                 	}
                 	
+                	// create a timer and timertask to receive keep-alive message from server
                 	ClientTimerTask receiver = new ClientTimerTask(connection);
-                	Timer timer = new Timer("Receiver");
+                	Timer timer = new Timer("ClientTimer");
                 	timer.scheduleAtFixedRate(receiver, delay, period);
 					
 					// get input from console and use PrintWriter to send the input to server.
@@ -88,9 +100,14 @@ public class GamePlayer {
             }
         } catch (IOException e) {
             e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
+    /**
+     * print the message from server
+     * @return
+     */
 	private String printMessageFromServer() {
 		// read the message from server
 		String serverMessage = scanner.nextLine();  
@@ -104,6 +121,12 @@ public class GamePlayer {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		
+		try {
+			demo = "demo".equals(args[0].toLowerCase());
+			System.out.println("Game Player is started in Demo mode.");
+		}catch (Exception e){}
+		
 		new GamePlayer();
 	}
 }

@@ -9,9 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 
-import server.GameServer;
 import server.PlayerHandler;
 
 /**
@@ -20,6 +18,12 @@ import server.PlayerHandler;
  */
 public class CalculateResult {
 	
+	/**
+	 * Organise the game result and generate a message for each player.
+	 * @param resultMap  the map of playerhandlers who finished the game normally.
+	 * @param targetNumber  the correct number 
+	 * @return a map of playerhandler with message in value
+	 */
 	public static Map<PlayerHandler, String> calculation(Map<PlayerHandler, Integer> resultMap, Integer targetNumber){
 
 		String winningMessage = "Congratulations. You are the winner. The number is " + targetNumber + ".";
@@ -53,6 +57,11 @@ public class CalculateResult {
 		return messageMap;
 	}
 	
+	/**
+	 * order the result map by value
+	 * @param resultMap
+	 * @return
+	 */
 	private static Map<PlayerHandler, Integer> orderMapByValue(Map<PlayerHandler, Integer> resultMap){
 		if (resultMap == null || resultMap.isEmpty()) {
 			return null;

@@ -17,12 +17,14 @@ import tools.CalculateResult;
 import tools.GameLogger;
 
 /**
+ * It is the main program of server.
  * @author Chih-Hsuan Lee <s3714761>
  *
  */
 public class GameServer {
 	
 	// declare some default parameters
+	private static Boolean demo = false;
 	private final static int PORT = 61618;
 	private static final Integer MAX_CHANCES = 4;
 	private Socket connection;
@@ -32,24 +34,22 @@ public class GameServer {
     static List<PlayerHandler> waitingPlayers = new LinkedList<>();
     static List<PlayerHandler> players = new LinkedList<>();
     private int requeueTimes = 0;
-    private final int SERVER_WAITING_TIME = 1000*60*3;
-    private final Logger LOGGER = GameLogger.getGameLogger();
+    private int SERVER_WAITING_TIME = demo?1000*10:1000*60*3;
+    private static final Logger LOGGER = GameLogger.getGameLogger();
 
     
     public GameServer() {
-		
+    	SERVER_WAITING_TIME = demo?1000*10:1000*60*3;
 		ServerSocket server = null;
 
         try {
-        	System.out.println("Game server is started.");
-        	LOGGER.log(Level.INFO, "Game server is started.");
         	
 			while (true) {
 				// start the server
 				server = new ServerSocket(PORT);
 				server.setSoTimeout(SERVER_WAITING_TIME);
-	            System.out.println("Waiting for players for 3 minutes...");
-	            LOGGER.log(Level.INFO, "Waiting for players for 3 minutes...");
+	            System.out.println("Waiting for players for "+(demo?"10 seconds...":"3 minutes..."));
+	            LOGGER.log(Level.INFO, "Waiting for players for "+(demo?"10 seconds...":"3 minutes..."));
 				
 				// use while loop to wait for player joining.
 	            while(true) {
@@ -57,7 +57,7 @@ public class GameServer {
 	            		// accept a connection from client
 	            		connection = server.accept();
 
-	            		connectedPlayers.add(new PlayerHandler(connection, this, null));
+	            		connectedPlayers.add(new PlayerHandler(connection, this, null, demo));
 	            		connectedPlayers.get(connectedPlayers.size()-1).start();
 	            		
 	            		if (connectedPlayers.size() >= 6) {
@@ -78,14 +78,18 @@ public class GameServer {
             		LOGGER.log(Level.INFO, connectedPlayer.getPlayerName() + " is joined the game from " + connectedPlayer.getConnection().getRemoteSocketAddress().toString() + ".");
 	            
             		// add the player to waiting line
-            		PlayerHandler player = new PlayerHandler(connectedPlayer.getConnection(), this, connectedPlayer.getPlayerName());
+            		PlayerHandler player = new PlayerHandler(connectedPlayer.getConnection(), this, connectedPlayer.getPlayerName(), demo);
             		player.setToGameTime();
             		waitingPlayers.add(player);
 	            }
 	            
+	            // remove old thread object to save memory
+	            connectedPlayers.removeAll(connectedPlayers);
+	            
 	            // play the guessing game until no player in queue.
 	            while (true) {
 	            	
+	            	// reset all the settings for new game
 	            	reset();
 
 	                this.decidePlayers();
@@ -103,6 +107,7 @@ public class GameServer {
 	                System.out.println(players.size() + " players are ready to start.");
 	                LOGGER.log(Level.INFO, players.size() + " players are ready to start.");
 	                
+	                // start the game for players
 	                players.forEach((player)-> {
 	                	try {
 	            			player.start();
@@ -131,7 +136,7 @@ public class GameServer {
 	            server.close();
 			}
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         } finally {
             try{
                 server.close();
@@ -162,7 +167,7 @@ public class GameServer {
         		waitingPlayers.remove(0);
         	}
         	
-        // if less than 3 waiting players, add all of them ot the player list.
+        // if less than 3 waiting players, add all of them to the player list.
         }else {
         	players.addAll(waitingPlayers);
         	waitingPlayers.removeAll(waitingPlayers);
@@ -198,8 +203,12 @@ public class GameServer {
 		
 		LOGGER.log(Level.INFO, player.getPlayerName() + (isAgain?" wants to play again. Requeue the player.":" ends the game."));
 		
-		if (isAgain)
-			waitingPlayers.add(new PlayerHandler(player.getConnection(), this, player.getPlayerName()));
+		// if the player wants to play again, re-add to the lobby with new thread.
+		if (isAgain) {
+			PlayerHandler renewPlayer = new PlayerHandler(player.getConnection(), this, player.getPlayerName(), demo);
+			renewPlayer.setToGameTime();
+			waitingPlayers.add(renewPlayer);
+		}
 		
 		requeueTimes++;
     }
@@ -215,28 +224,25 @@ public class GameServer {
     		
     		// Send the message to each player
     		LOGGER.log(Level.INFO, "Game Result: ");
+    		List<PlayerResultHandler> playerResults = new LinkedList<>();
     		messages.forEach((k, v)-> {
     			LOGGER.log(Level.INFO, k.getPlayerName() + ": " + v);
-    			new PlayerResultHandler(k, this, v).start();
+    			playerResults.add(new PlayerResultHandler(k, this, v, demo));
+    			playerResults.get(playerResults.size()-1).start();
     		});
     		
     		// Check whether all the players has relied to play again or not.
-    		while(true) {
-    			TimeUnit.SECONDS.sleep(2);
-    			if (requeueTimes == messages.size())
-    				break;
-    		}
+    		for (PlayerResultHandler player: playerResults)
+    			player.join();
     	}else {
     		LOGGER.log(Level.INFO, "No result needs to be calculated.");
     	}
-    	
-    	
 	}
 
     /**
      * use to store result
-     * @param player : player thread
-     * @param remainingChance : remaining chance of the player
+     * @param player  player thread
+     * @param remainingChance  remaining chance of the player
      */
 	public void setResultMap(PlayerHandler player, Integer remainingChance) {
     	resultMap.put(player, remainingChance);
@@ -250,10 +256,18 @@ public class GameServer {
 		System.out.println("The random number is " + randomNumber + ".");
 	}
 
+	/**
+	 * return the number which is guessed.
+	 * @return
+	 */
 	public int getRandomNumber() {
 		return randomNumber;
 	}
 	
+	/**
+	 * return the number of maximum chances to guess.
+	 * @return
+	 */
 	public int getMaxChance() {
 		return MAX_CHANCES;
 	}
@@ -262,6 +276,15 @@ public class GameServer {
 	 * @param args
 	 */
 	public static void main(String[] args) {
+		
+		try {
+			demo = "demo".equals(args[0].toLowerCase());
+			System.out.println("Game server is started in Demo mode.");
+        	LOGGER.log(Level.INFO, "Game server is started in Demo mode.");
+		}catch (Exception e){
+			System.out.println("Game server is started.");
+			LOGGER.log(Level.INFO, "Game server is started.");
+		}
 		
 		new GameServer();
 

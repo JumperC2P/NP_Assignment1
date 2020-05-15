@@ -12,11 +12,15 @@ import java.util.logging.Logger;
 import tools.GameLogger;
 
 /**
+ * The PlayerHandler will handle the main game process.
  * @author Chih-Hsuan Lee <s3714761>
  *
  */
 public class PlayerHandler extends Thread {
 	
+	private Boolean demo = false;
+	private long delay = demo?1000*5:1000*30;
+	private long period = demo?1000*5:1000*30;
 	private Boolean isGame = false;
 	private String playerName;
 	private Integer MAX_CHANCES;
@@ -24,43 +28,53 @@ public class PlayerHandler extends Thread {
 	private PrintWriter printWriter;
 	private GameServer server;
 	private Socket connection;
-	private long delay = 1000*30;
-	private long period = 1000*30;
 	private final Logger LOGGER = GameLogger.getGameLogger();
 
-	public PlayerHandler(Socket connection, GameServer server, String playerName) throws IOException {
-		
+	public PlayerHandler(Socket connection, GameServer server, String playerName, Boolean demo) throws IOException {
 		
 		this.playerName = playerName;
 		this.connection = connection;
 		this.server = server;
 		MAX_CHANCES = server.getMaxChance();
+		this.demo = demo;
+		delay = demo?1000*5:1000*30;
+		period = demo?1000*5:1000*30;
 		try {
 			connInput = new Scanner(connection.getInputStream());
 			printWriter = new PrintWriter(connection.getOutputStream(), true);
+			// if the player name is exist already, it means that the player has played at least one round.
 			if (playerName == null)
 				sendMessage("Please wait for other players. The game will start in 3 minutes no matter how many players join in 3 minutes.");
 			
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println(e.getMessage());
 			throw e;
 		}
 
 	}
 
+	/**
+	 * Send message to client
+	 * @param message message to send
+	 */
 	public void sendMessage(String message) {
 		printWriter.println(message);
 	}
 	
+	/**
+	 * Set the flag for playing the game
+	 */
 	public void setToGameTime() {
 		this.isGame = true;
 	}
 	
 	@Override
 	public void run() {
-		
+
+		// if the flag is true, it means it's time to play.
 		if (isGame) {
 			playGame();
+		// if it is false, the player needs to give us his or her name.
 		}else {
 			if (this.playerName == null) {
 				setPlayerName();
@@ -69,14 +83,20 @@ public class PlayerHandler extends Thread {
 		}
 	}
 
+	/**
+	 * The playing game method
+	 */
 	private void playGame() {
-		Timer timer = new Timer("Sender");
+		// create a new Timer object for keep-alive message
+		Timer timer = null;
 		try {
 			
+			// check whether or not the player has provided his or her name.
 			if (this.playerName == null) {
 				setPlayerName();
 			}
 			
+			// get the number to guess from server
 			Integer randomNumber = server.getRandomNumber();
 			sendMessage("Let's start the game. If you want to quit the game, enter \"e\". Now, please guess a number between 0 and 12 (chances left: " + (MAX_CHANCES) + "): " );
 			
@@ -86,9 +106,10 @@ public class PlayerHandler extends Thread {
 			// use while loop to communicate with client continuously.
             while (true) {
             	try {
-
-            		ServerTimerTask sender = new ServerTimerTask(connection, printWriter, "Please guess a number between 0 and 12: ");
-            		timer = new Timer("Sender");
+            		// create a new TimerTask and schedule it
+            		// once receiving the response from client, the timer will be stoped.
+            		ServerTimerTask sender = new ServerTimerTask(connection, printWriter, "Please guess a number between 0 and 12: ", demo);
+            		timer = new Timer("ServerTimer");
             		timer.scheduleAtFixedRate(sender, delay, period);
             		
 					// get the message from client
@@ -169,7 +190,6 @@ public class PlayerHandler extends Thread {
         	LOGGER.log(Level.INFO, (playerName==null?"Someone":playerName) + " quits the game.");
         	System.out.println((playerName==null?"Someone":playerName) + " quits the game.");
         }
-//		System.out.println("End the Thread.");
 		
 	}
 
@@ -177,13 +197,14 @@ public class PlayerHandler extends Thread {
 	 * get player name from client
 	 */
 	private void setPlayerName() {
-		Timer timer = new Timer("Sender");
+		Timer timer = null;
 		try {
 			printWriter.println("Welcome to the guessing game. Please give us your name: ");
 
+			// the while loop is used to ask for player name
 			while (true) {
-				timer = new Timer("Sender");
-				ServerTimerTask sender = new ServerTimerTask(connection, printWriter, "Please give us your name: ");
+				timer = new Timer("ServerTimer");
+				ServerTimerTask sender = new ServerTimerTask(connection, printWriter, "Please give us your name: ", demo);
 				timer.scheduleAtFixedRate(sender, delay, period);
 				String playerInput = connInput.nextLine();
 				timer.cancel();
@@ -203,10 +224,18 @@ public class PlayerHandler extends Thread {
 		}
 	}
 	
+	/**
+	 * Return the connection of the playerhandler
+	 * @return
+	 */
 	public Socket getConnection() {
 		return connection;
 	}
 	
+	/**
+	 * Return the player name recorded in the playerhandler
+	 * @return
+	 */
 	public String getPlayerName() {
 		return playerName;
 	}

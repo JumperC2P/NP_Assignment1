@@ -6,6 +6,7 @@ import java.util.Scanner;
 import java.util.TimerTask;
 
 /**
+ * ClientTimerTask is used to receive and to print the message from server.
  * @author Chih-Hsuan Lee <s3714761>
  *
  */
@@ -19,6 +20,9 @@ public class ClientTimerTask extends TimerTask {
 		this.connection = connection;
 	}
 	
+	/**
+	 * catch keep-alive message from server
+	 */
 	public void run() {
 		try {
 			
@@ -29,6 +33,9 @@ public class ClientTimerTask extends TimerTask {
 				System.out.println(scanner.nextLine());
 			}
 			
-		}catch(Exception e) {}
+		}catch(Exception e) {
+			e.printStackTrace();
+			System.exit(-1);
+		}
 	}
 }
