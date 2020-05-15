@@ -1,3 +1,3 @@
 cd src/
 
-java server GameServer demo
+java server.GameServer
